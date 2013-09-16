@@ -17,7 +17,7 @@ static int jiffies_init(void)
 	do_gettimeofday(&val);
 	printk("%ld.%.6ld\n", val.tv_sec, val.tv_usec);
 	time_to_tm(val.tv_sec, 0, &t);
-	printk("%ld-%d-%d %d:%d:%d\n", t.tm_year + 1990, t.tm_mon + 1, t.tm_mday, t.tm_hour, t.tm_min, t.tm_sec);
+	printk("%ld-%d-%d %d:%d:%d\n", t.tm_year + 1900, t.tm_mon + 1, t.tm_mday, t.tm_hour, t.tm_min, t.tm_sec);
 	return 0;
 }
 
