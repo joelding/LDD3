@@ -59,6 +59,40 @@ void atomic_sub_and_test(int i, atomic_t *v)
 ```
 Perform the specified operation and test the result; if, after the operation, the atomic value is -, then the return value is true; otherwise, it is false.
 
+### Atomic Variables (Bit)
+* Defined in asm/bitops.h
+* Modify or test single bits in a single step, no interrupt (or other processor) can interfere.
+* Atomic functions
+```
+void set_bit(nr, void *addr);
+```
+Sets bit number nr in the data item pointed to by addr
+```
+void clear_bit(nr, void *addr);
+```
+Clears the specified
+```
+void change_bit(nr, void *addr);
+```
+Toggles the bit
+```
+test_bit(nr, void *addr);
+```
+Returns the current value of the bit.
+```
+int test_and_set_bit(nr, void *addr);
+```
+Set a bit and return its old value
+```
+int test_and_clear_bit(nr, void *addr);
+```
+Clear a bit and return its old value
+```
+int test_and_change_bit(nr, void *addr);
+```
+Change a bit and return its new value
+
+
 ## Kernel Locking --- Caveats
   * Semaphore:
     * The lock-held time may be long.
