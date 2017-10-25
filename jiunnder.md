@@ -28,16 +28,36 @@ typedef struct {
 ```
 #define atomic_read(v) ((v)->counter)
 ```
-* Return the current value of v.
+Return the current value of v.
 ```
 #define atomic_set(v,i) (((v)->counter) = (i))
 ```
-      
-* Set the atomic variable v to the integer value i.
+Set the atomic variable v to the integer value i.
 ```
 #define ATOMIC_INIT(i) {(i)}
 atomic_t v = ATOMIC_INIT(0);
 ```
+Initialize an atomic variable.
+* Atomic functions:
+```
+void atomic_add(int i, atomic_t *v)
+```
+Add i to the atomic variable pointed to by v.
+```
+void atomic_sub(int i, atomic_t *v)
+```
+Subtract i from \*v.
+```
+void atomic_dec(atomic_t *v)
+void atomic_inc(atomic_t *v)
+```
+Increment or decrement an atomic variable.
+```
+void atomic_dec_and_test(atomic_t *v)
+void atomic_inc_and_test(atomic_t *v)
+void atomic_sub_and_test(int i, atomic_t *v)
+```
+Perform the specified operation and test the result; if, after the operation, the atomic value is -, then the return value is true; otherwise, it is false.
 
 ## Kernel Locking --- Caveats
   * Semaphore:
