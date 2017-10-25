@@ -15,6 +15,27 @@
 
 ## Kernel Locking --- Atmoic
   * Perform in one uninterruptible operation
+  * Atomic Variables (Integer)
+    * Defined in asm/atomic.h
+```
+typedef struct {
+	volatile int counter;
+} atomic_t;
+```
+    * Operation compiled as one single instruction
+    * Macros
+```
+      #define atomic_read(v) ((v)->counter)
+```
+      * Return the current value of v.
+```
+      #define atomic_set(v,i) (((v)->counter) = (i))
+```
+      * Set the atomic variable v to the integer value i.
+```
+      #define ATOMIC_INIT(i) {(i)}
+      atomic_t v = ATOMIC_INIT(0);
+```
 
 ## Kernel Locking --- Caveats
   * Semaphore:
