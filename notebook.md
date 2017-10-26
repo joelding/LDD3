@@ -7,6 +7,67 @@ This is my notes on programming Linux device drivers.
 	2017/10/25	init
 ```
 
+## References
+1. LDD3
+1. 宋宝华, Linux设备驱动开发详解:基于最新的Linux4.0内核, 机械工业出版社 2015年8月1日
+
+
+## Kernel Drivers for I2C/SMBus Devices
+
+* may not be necessary since i2c-dev.c prepares such drivers of major number 89. See
+```
+# ls -l /dev | grep 'i2c'
+```
+
+* of built-in type must implement
+```
+struct I2c_device_id foo_idtable = {
+	{"foo", 0}, /* name up to 20 characters, driver_data */
+	{} /* end of list */
+};
+MODULE_DEVICE_TABLE(i2c, foo_idtable);
+
+struct i2c_driver foo_driver = {
+	.driver = {
+		.name = "foo",
+		.owner = THIS_MODULE,
+	},
+
+	.id_table = foo_idtable,
+	.probe = foo_probe,
+	.remove = foo_remove,
+}
+```
+
+* of autodetection type must implement extra callbacks
+```
+	.class = I2C_CLASS_SOMETHING,
+	.detect = foo_detect,
+	.address_list = normal_i2c,
+```
+
+* registers during initialization
+```
+static init __init foo_init(void)
+{
+	return i2c_add_driver(&foo_driver);
+}
+module_init(foo_init);
+
+static void __exit foo_exit(void)
+{
+	return i2c_del_driver(&foo_driver);
+}
+module_exit(foo_exit);
+
+MODULE_LICENSE("GPL");
+```
+
+
+references:
+1. 宋宝华, Linux设备驱动开发详解. section 15.4
+1. Documentation/i2c/writing-clients
+
 ## Miscellaneous Character Drivers
 * are not found in LDD3 book
 * have been existing since 2.0 kernel
@@ -19,15 +80,29 @@ This is my notes on programming Linux device drivers.
 * APIs (kernel 3.18)
 ```
 #include <linux/miscdevice.h>
-struct file_operations mydev_fops;
-struct miscdevice * misc = {
-	.minor	=	MISC_DYNAMIC_MINOR, //a minor number is assigned by kernel
-	.name	=	"mydev",
-	.fops	=	&mydev_fops,
-};
-int misc_register(struct miscdevice * misc);
-int misc_deregister(struct miscdevice * misc);
+struct file_operations foo_fops = {
 
+};
+struct miscdevice * foo_dev = {
+	.minor	=	MISC_DYNAMIC_MINOR, //a minor number is assigned by kernel
+	.name	=	"foo",
+	.fops	=	&foo_fops,
+};
+
+static init __init foo_init(void)
+{
+	int ret;
+	ret = misc_register(&foo_dev);
+	/* TODO: handle error */
+	return ret;
+}
+module_init(foo_init);
+
+static void __exit foo_exit(void)
+{
+	misc_deregister(&foo_dev);
+}
+module_exit(foo_exit);
 ```
 
 references:

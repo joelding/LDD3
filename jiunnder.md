@@ -39,6 +39,12 @@ void spin_unlock_irq(spinlock_t *lock)
 void spin_unlock_irqrestore(spinlock_t *lock, unsigned long flags)
 void spin_unlock_bh(spinlock_t *lock)
 ```
+### Readers-writer spinlock
+* Allow any number of readers into a critical section simultaneously, but writers must have exclusive.
+```
+#include <linux/spinlock.h>
+
+```
 
 reference:
 1. kernel  Documentation/locking/spinlocks
