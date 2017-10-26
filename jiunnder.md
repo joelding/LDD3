@@ -8,13 +8,43 @@
 	* Any code can block (go to sleep)
 
 ## Kernel Locking --- Semaphore
-  * Multi-process mutual exclusion
+Multi-process mutual exclusion
   
 ## Kernel Locking --- Spinlock
-  * Low level driver locking mechanism
+Low level driver locking mechanism
+
+* Spinlock functions
+```
+#include <linux/spinlock.h>
+DEFINE_SPINLOCK(lock);
+```
+  * Lock functions
+```
+void spin_lock(spinlock_t *lock)
+void spin_trylock(spinlock_t *lock)
+```
+  * Release a spin lock
+```
+void spin_unlock(spinlock_t *lock)
+```
+* A thread gets spinlock & later an interrupt requires the same lock
+Deadlock if both calls spin\_lock(). Solution: let the thread disables interrupts while .
+
+```
+void spin_lock_irq(spinlock_t *lock)
+void spin_lock_irqsave(spinlock_t *lock, unsigned long flags)
+void spin_lock_bh(spinlock_t *lock, unsigned long flags)
+
+void spin_unlock_irq(spinlock_t *lock)
+void spin_unlock_irqrestore(spinlock_t *lock, unsigned long flags)
+void spin_unlock_bh(spinlock_t *lock)
+```
+
+reference:
+1. kernel  Documentation/locking/spinlocks
 
 ## Kernel Locking --- Atmoic
-  * Perform in one uninterruptible operation
+Perform in one uninterruptible operation
 
 ### Atomic Variables (Integer)
 * Defined in asm/atomic.h   
