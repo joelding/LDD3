@@ -1,3 +1,42 @@
+
+///////////////////////////////////////////////////////////////////////////////
+
+# Character Device Driver
+
+# Name Space
+  * Preventing naming polution:
+    1. Declare all your variables as static and to use a well-define prefix
+       for for your symbols (lowercase).
+    2. To export a function or variable
+       - EXPORT_SYMBOL(your_function_or_variable)
+       - For 2.4 kernel must be compiled with this options:
+         -DEXPORT_SYMTAB
+
+# Code Space
+  * Kernel has its own space of memory as well
+  * Module: dynamically insert and remove in the kernel. shares the kernel space
+  * If your module segfaults, the kernel segfaults.
+
+# Device Driver
+  * One class of module, which provides functionality for hardware.
+  * Linux programs treat most devices as files
+    - Device files are located in '/dev' directory
+  * Provides a familiar programming interface
+    - Standard C functions: open(), read(), etc
+  * Kernel uses number-pairs (major, minor)
+    - Major Number:
+      . Identify the driver assiciated with the device.
+      . /usr/src/linux-2.x.x/Documentation/devices.txt
+    - Minor Number:
+      . The 'minor' number identifies the device
+
+
+
+
+///////////////////////////////////////////////////////////////////////////////
+
+
+
 ## Kernel Locking
 * Why?
   * Synchronization in certain code paths in the kernel
