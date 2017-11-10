@@ -4,32 +4,75 @@
 # Character Device Driver
 
 # Name Space
-  * Preventing naming polution:
-    1. Declare all your variables as static and to use a well-define prefix
-       for for your symbols (lowercase).
-    2. To export a function or variable
-       - EXPORT_SYMBOL(your_function_or_variable)
-       - For 2.4 kernel must be compiled with this options:
-         -DEXPORT_SYMTAB
+	* Preventing naming polution:
+		1. Declare all your variables as static and to use a well-define prefix
+		for for your symbols (lowercase).
+		2. To export a function or variable
+			- EXPORT_SYMBOL(your_function_or_variable)
+			- For 2.4 kernel must be compiled with this options:
+			-DEXPORT_SYMTAB
 
 # Code Space
-  * Kernel has its own space of memory as well
-  * Module: dynamically insert and remove in the kernel. shares the kernel space
-  * If your module segfaults, the kernel segfaults.
+	* Kernel has its own space of memory as well
+	* Module: dynamically insert and remove in the kernel. shares the kernel space
+	* If your module segfaults, the kernel segfaults.
 
 # Device Driver
-  * One class of module, which provides functionality for hardware.
-  * Linux programs treat most devices as files
-    - Device files are located in '/dev' directory
-  * Provides a familiar programming interface
-    - Standard C functions: open(), read(), etc
-  * Kernel uses number-pairs (major, minor)
-    - Major Number:
-      . Identify the driver assiciated with the device.
-      . /usr/src/linux-2.x.x/Documentation/devices.txt
-    - Minor Number:
-      . The 'minor' number identifies the device
+	* One class of module, which provides functionality for hardware.
+	* Linux programs treat most devices as files
+		- Device files are located in '/dev' directory
+	* Provides a familiar programming interface
+		- Standard C functions: open(), read(), etc
+	* Kernel uses number-pairs (major, minor)
+		- Major Number:
+			. Identify the driver assiciated with the device.
+			. /usr/src/linux-2.x.x/Documentation/devices.txt
+		- Minor Number:
+			. The 'minor' number identifies the device
 
+# Register Char Device
+	* Register a character device
+		- int regsiter_chrdev(unsigned int, const char*, struct file_operations*);
+			. Others: major number, "Documentation/devices.txt" 
+			. 0: Major number decides by kernel
+			. Device name, it appears at /proc/devices
+			. file operation table pointer
+	* Unregister a character device
+		- int unregister_chrdev(unsigned int, const char*)
+
+```
+major = register_chrdev(0, "char_reg", &fops);
+if (major < 0) {
+	printk("Registering the character device failed with %d\n", major);
+}
+```
+
+# Register Char Device (New)
+	* #include <linux/fs.h>
+	* Register character device
+		- int register_chrdev_region(dev_t from, unsigned count, const char *name)
+		- from: first device number (major/minor) of the region
+		- count: Total number of contiguous device numbers 
+		(can cross major-minor boundary)
+		- name: Device name, it appears at /proc/devices
+
+```
+if (register_chrdev_region(MKDEV(major, minor), 1, "char_reg") < 0) {
+	printk("register_chrdev_region() fail\n");
+}
+```
+
+		- int alloc_chrdev_region(dev_t *dev, unsigned baseminor, unsigned count,
+const char *name)
+```
+if (alloc_chrdev_region(&devno, 0, 1, "char_reg") < 0) {
+	printk("alloc_chrdev_region() fail\n");
+}
+major = MAJOR(devno);
+```
+
+	* Unregister a character device
+		- void unregister_chrdev_region(dev_t from, unsigned count)
 
 
 
