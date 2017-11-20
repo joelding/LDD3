@@ -165,6 +165,9 @@ v4l2_device_unregister_subdev(sd);
 # I2C sub-device drivers
 
 	* refer to [1] line 498~
+	* when the kernel enables I2C (CONFIG_I2C)
+	* when the kernel enables SPI (CONFIG_SPI)
+	* 
 
 #include <v4l2/v4l2-common.h>
 
@@ -180,10 +183,12 @@ struct chipname_state *state;
 
 #include <v4l2/v4l2-common.h>
 
-/* fill in all the fields of v4l2_subdev;
+/* in _probe()
+ * fill in all the fields of v4l2_subdev;
  * the v4l2_subdev and i2c_client point to one another 
  */
 v4l2_i2c_subdev_init(&state->sd, client, subdev_ops); 
+v4l2_spi_subdev_init(&state->sd, client, subdev_ops); 
 
 
 static inline struct chipname_state *to_state(struct v4l2_subdev *sd)
@@ -191,34 +196,76 @@ static inline struct chipname_state *to_state(struct v4l2_subdev *sd)
 	return container_of(sd, struct chipname_state, sd);
 }
 
-/* Go from v4l2_subdev to i2c_client, and back forth */
+/* Go from v4l2_subdev to i2c_client, and back forth 
+ */
 struct i2c_client *client = v4l2_get_subdevdata(sd);
 struct v4l2_subdev *sd = i2c_get_clientdata(client);
 
+/* in _remove()
+ */
 v4l2_device_unregister_subdev(sd);
 
 	v4l2_ctrl_handler_init(&state->ctrl_handler, nr_of_controls);
 
+/* The bridge driver loads the given module
+ */
+struct v4l2_subdev *sd = 
+	v4l2_i2c_new_subdev(struct v4l2_device *v4l2_dev,
+						struct i2c_adapter *adapter, 
+						const char *client_type, 
+						u8 addr, 
+						const unsigned short *probe_addrs);
+note: kernel 3.18.y said 5 parameters while kernel doc said 6.
+note: v4l2_spi_new_subdev(...);
+
+v4l2_i2c_new_subdev_cfg()
+note: no longer available in kernel 3.18.y 
+	
+struct v4l2_subdev *sd = 
+	v4l2_i2c_new_subdev_board(struct v4l2_device *v4l2_dev,
+							  struct i2c_adapter *adapter, 
+							  struct i2c_board_info *info,
+							  const unsigned short *probe_addrs);
+
+
+
+
+
+
+///////////////////////////////////////////////////////////////////////////
+
+# struct video_device
+
+	* to create device nodes in /dev
 
 #include <v4l2/v4l2-dev.h>
+struct video_device *vdev = video_device_alloc();
+if (vdev == NULL) return -ENOMEM;
+
+vdev->release = video_device_release;
+
+err = video_register_device(vdev, VFL_TYPE_GRABBER, -1);
+if (err) {
+	video_device_release(vdev);
+	return err;
+}
+
+void *video_get_drvdata(struct video_device *vdev);
+void video_set_drvdata(struct video_device *vdev, void *data);
+
+
+
+
+///////////////////////////////////////////////////////////////////////////
+
+# video buffer
+
+
 
 
 ///////////////////////////////////////////////////////////////////////////
 
 
-
-
-
-
-
-
-
-
-
-
-
-TODO:
-v4l2_i2c_new_subdev(v4l2_dev, adapter, "module_foo", "chipid", 0x36, NULL);
 
 CEA-861-E timings: v4l2-dv-timings.h
 

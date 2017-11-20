@@ -1,5 +1,59 @@
 
-///////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////
+
+What is a Kernel Module?
+
+* Modules are pieces of code that can be loaded and unloaded to into the
+  kernel upon demand
+* Extend the functionality without reboot
+* Without module, we have to rebuild a monolithic kernel and reboot
+
+page 9
+
+///////////////////////////////////////////////////////////////////////////
+
+init_module()	 ---insmod-->	register_capability()
+callbacks		 <--call---		kernel
+module calls	 ----------->	kernel exported functions
+cleanup_module() <--rmmod--- 	unregister_capability()
+
+page 10
+
+///////////////////////////////////////////////////////////////////////////
+
+Kernel Module - Start and End Functions
+
+* Include headers
+	#include <linux/kernel.h>
+	#include <linux/module.h>
+* implement a module start function
+	* int init_module(void)
+	* register with module_init(your_start_function) 
+		* #include <linux/init.h>
+		* static int __init your_start_function(void)
+* implement a module exit function
+	* void cleanup_module(void)
+	* Unregister with module_exit(your_end_function)
+		* #include <linux/init.h>
+		* static int __exit your_end_function(void)
+
+page 11
+
+///////////////////////////////////////////////////////////////////////////
+
+# Compiling with -D__TEST__
+
+* Define with EXTRA_CFLAGS in Makefile
+	//Makefile for making multiple source
+	EXTRA_CFLAGS += -D__TEST__
+	obj-m += hello.o
+
+* Build this module
+	make V=1 -C /lib/modules/`uname -r`/build M=`pwd` modules
+	V=1: verbose mode
+
+
+///////////////////////////////////////////////////////////////////////////
 
 # Character Device Driver
 
