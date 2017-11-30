@@ -1,18 +1,25 @@
-# LINUX DEVICE DRIVERS
+
+LINUX DEVICE DRIVERS
 
 This is my notes on programming Linux device drivers.
 
-## History
-```
-	2017/10/25	init
-```
+///////////////////////////////////////////////////////////////////////////
 
-## References
+History
+
+	2017/10/25	init
+
+///////////////////////////////////////////////////////////////////////////
+
+References
+
 1. LDD3
 1. 宋宝华, Linux设备驱动开发详解:基于最新的Linux4.0内核, 机械工业出版社 2015年8月1日
 
 
-## Kernel Drivers for I2C/SMBus Devices
+///////////////////////////////////////////////////////////////////////////
+
+Kernel Drivers for I2C/SMBus Devices
 
 * may not be necessary since i2c-dev.c prepares such drivers of major number 89. See
 ```
@@ -68,6 +75,7 @@ references:
 1. 宋宝华, Linux设备驱动开发详解. section 15.4
 1. Documentation/i2c/writing-clients
 
+///////////////////////////////////////////////////////////////////////////
 ## Miscellaneous Character Drivers
 * are not found in LDD3 book
 * have been existing since 2.0 kernel
@@ -108,7 +116,8 @@ module_exit(foo_exit);
 references:
   * Docs » The Linux driver implementer’s API guide » Miscellaneous Devices [link](https://www.kernel.org/doc/html/v4.12/driver-api/misc_devices.html)
   * Miscellaneous Character Drivers, Jun 30, 1998  By Alessandro Rubini [link](http://www.linuxjournal.com/article/2920)
-
+ 
+///////////////////////////////////////////////////////////////////////////
 ## Netlink / Netlink sock family
 * is a Linux interface used for inter-process communication between both the kernel and userspace processes, and between different userspace processes
 * has benefits over other communcations such as system calls, ioctls or proc filesystems
