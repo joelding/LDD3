@@ -6,6 +6,7 @@ Q: What is a media framework? How does this relate to V4L2 driver?
 ///////////////////////////////////////////////////////////////////////////
 
 History
+
 	2017/11/01 init
 
 
@@ -15,16 +16,15 @@ History
 
 references:
 
-1. Overview of the V4L2 driver framework: explaining the various structures 
-provided by the V4L2 framework and their relationships. 
-[link](http://elixir.free-electrons.com/linux/v3.18.20/source/Documentation/video4linux/v4l2-framework.txt)
-2. [link](http://elixir.free-electrons.com/linux/v3.18.20/source/Documentation/video4linux/v4l2-controls.txt)
-3. An Introduction to the Video4Linux Framework by Verkuil [link](https://archive.fosdem.org/2014/schedule/event/v4l_intro/attachments/slides/448/export/events/attachments/v4l_intro/slides/448/v4l2_frameworks.pdf)
-4. Linux Media Subsystem Documentation [link](https://linuxtv.org/downloads/v4l-dvb-apis/)
+1. kernel source code/Documentation/video4linux: v4l2-framework.txt, v4l2-controls.txt
+1. kernel source code/Documentation/media-framework.txt
+
+2. An Introduction to the Video4Linux Framework by Verkuil [link](https://archive.fosdem.org/2014/schedule/event/v4l_intro/attachments/slides/448/export/events/attachments/v4l_intro/slides/448/v4l2_frameworks.pdf)
+3. Linux Media Subsystem Documentation [link](https://linuxtv.org/downloads/v4l-dvb-apis/)
 
 ///////////////////////////////////////////////////////////////////////////
 
-# V4L2 drivers
+Introduction to V4L2 drivers
 
 	* tend to be complex
 		* involving multiple ICs, device nodes, non-V4L2 devices
@@ -34,7 +34,7 @@ provided by the V4L2 framework and their relationships.
   		* connected to the main bridge driver through I2C busses
 		* bus or host controller is called a parent device
 
-=> V4L2 framework
+solution to complexity: V4L2 framework
 
 	* refactors common code
 	* provides basic building blocks
@@ -42,10 +42,10 @@ provided by the V4L2 framework and their relationships.
 	
 ///////////////////////////////////////////////////////////////////////////
 
-# V4L2 drivers must
+V4L2 drivers must
 
 	* have the device state: one for each device instance
-	* be able to init and command sub-devices
+	* be able to init and command sub-devices (if any)
 	* be able to create v4l2 device nodes and manage device-node specific data
 	* Filehandle-specific structs and per-filehandle data
 	* handle video buffer 
@@ -65,8 +65,13 @@ provided by the V4L2 framework and their relationships.
 
 ///////////////////////////////////////////////////////////////////////////
 
-# APIs
+APIs of struct v4l2_device
 
+status: hard to go on. No find examples in source.
+
+/* If integrating with the media device framework:
+ * point dev->driver_data to the driver-specific device structure
+ */
 dev_set_drvdata(struct device *dev, void *data);
 
 #include <media/v4l2-device.h>
@@ -100,11 +105,14 @@ void v4l2_device_get(struct v4l2_device *v4l2_dev);
 int v4l2_device_put(struct v4l2_device *v4l2_dev);
 
 ///////////////////////////////////////////////////////////////////////////
+status: need read the doc and summarize more times! 2017/12/01
 
-# struct v4l2_subdev
+APIs of struct v4l2_subdev
 
 	* Each sub-device driver must have a v4l2_subdev struct.
-	* stand-alone or embedded in a larger struct, state information.
+	* stand-alone for simple sub-devices
+	* embedded in a larger struct, state information
+
 
 #include <media/v4l2-subdev.h>
 
@@ -115,32 +123,67 @@ struct chipname_state {
 		
 };
 
-struct chipname_state *state;
+
+	* The kernel sends a low-level device struct i2c_client, representing an I2C slave device
+
+in include/linux/i2c.h
+struct i2c_client {
+	unsigned short flags;
+	unsigned short addr; /* 7bit address */
+	char name[I2C_NAME_SIZE];
+	struct i2c_adapter *adapter;
+	struct device dev;
+	int irq;
+	struct list_head dtected;
+};
+
+struct v4l2_subdev_ops chipname_subdev_ops = {
+	const struct v4l2_subdev_core_ops *core;
+	const struct v4l2_subdev_tuner_ops *tuner;
+	const struct v4l2_subdev_audio_ops *audio;
+	const struct v4l2_subdev_video_ops *video;
+
+	/* to process video and integrate with the media framework
+	 * not use const struct v4l2_subdev_video_ops *;
+	 */
+	const struct v4l2_subdev_pad_ops *pad;
+};
+
+static int chipname_probe(	struct i2_client *client, 
+							const struct i2c_device_id *id ) 
+{
+	struct chipname_state *state;
+	struct v4l2_subdev *sd;
+
+	state = devm_kzalloc(client->sizeof(struct chipname_state), GFP_KERNEL); 
+	/* if fail return -ENOMEM */
+
+	state->client = client;
+	sd = &state->sd;
+
+	v4l2_subdev_init(sd, &chipname_subdev_ops);
+	sd->flags |= V4L2_SUBDEV_FL_IS_I2C;
+	sd->owner = client->dev.driver->owner; /* set the module owner */
+	sd->dev = &client->dev;
+	v4l2_set_subdevdata(&state->sd, client);
+	i2c_set_clientdata(client, &state->sd);
+	snprint(sd->name, sizeof(sd->name), "%s %d=%04x", 
+		client->dev.driver->name, i2c_adapter_id(client->adapter), client->addr);
+	/* i2c helper function: 
+	 * v4l2_i2c_subdev_init(&state->sd, client, &chipname_subdev_ops) 
+	 */
+
+	/* sd->flags |= V4L2_SUBDEV_FL_HAS_DEVNODE;
+	 * v4l2_device_register_subdev_nodes();
+	 */
+
+	struct media_pad *pads = &sd->pads;
+	int err = media_entity_init(&sd->entity, npads, pads, 0);
 
 
 
-
-
-v4l2_set_subdevdata(state->sd, client);
-i2c_set_clientdata(struct i2c_client *client, struct v4l2_subdev *sd);
-/* auto-done by v4l2_i2_subdev_init(); */
- 
-
-
-v4l2_subdev_init(struct v4l2_subdev *sd, struct v4l2_subdev_ops *ops);
-snprint(sd->name, sizeof(sd->name), "%s %d=%04x", );
-sd->owner = THIS_MODULE;
-
-
-struct media_pad *pads = &sd->pads;
-int err = media_entity_init(&sd->entity, npads, pads, 0);
-media_entity_cleanup(&sd->entity);
-
-///////////////////////////////////////////////////////////////////////////
-
-# media framework
-
-///////////////////////////////////////////////////////////////////////////
+	media_entity_cleanup(&sd->entity);
+}
 
 # to register subdevices to the V4L2 core
 
@@ -158,6 +201,10 @@ v4l2_device_unregister_subdev(sd);
 		* defined in a Device Tree based system as I2C device nodes
 		* information about subdevices is available to the system independently 
 		  from the bridge devices
+
+v4l2_async_register_subdev();
+v4l2_async_unregister_subdev();
+v4l2_async_notifier();
 
 
 ///////////////////////////////////////////////////////////////////////////
@@ -196,16 +243,19 @@ static inline struct chipname_state *to_state(struct v4l2_subdev *sd)
 	return container_of(sd, struct chipname_state, sd);
 }
 
-/* Go from v4l2_subdev to i2c_client, and back forth 
- */
+/* Go from v4l2_subdev to i2c_client */
 struct i2c_client *client = v4l2_get_subdevdata(sd);
+
+/* Go from i2c_client to v4l2_subdev */
 struct v4l2_subdev *sd = i2c_get_clientdata(client);
 
 /* in _remove()
  */
 v4l2_device_unregister_subdev(sd);
+i2c_unregister_device(sd);
 
-	v4l2_ctrl_handler_init(&state->ctrl_handler, nr_of_controls);
+//////////////////////////////////////////////////////////////////////////
+
 
 /* The bridge driver loads the given module
  */
@@ -275,7 +325,67 @@ HDMI CEC: What? Why? How? by Hans Verkuil [link](https://youtu.be/sk4oit_wykM)
 
 
 
+///////////////////////////////////////////////////////////////////////////
 
+V4L2 CONTROL API
 
+	- How do I add a control
+	- How do I set/get the control's value?
+	- How do I validate the user's proposed control value?
 
+2 main objects
+	- struct v4l2_ctrl
+		- describes the control properties
+		- keep track of the control's value
+	- v4l2_ctrl_handler
+		- keep track of controls
+		- maintain a list of v4l2_ctrl objects
 
+struct chipname_state {
+
+/* V4L2 drivers */
+	struct v4l2_device v4l2_dev;
+/* , or sub-device drivers */
+	struct v4l2_subdev sd;
+
+	struct v4l2_ctrl_handler ctrl_handler;
+	...
+};
+
+v4l2_ctrl_handler_init(&state->ctrl_handler, nr_of_controls);
+
+/* V4L2 drivers */
+state->v4l2_dev.ctrl_handler = &state->ctrl_handler;
+	
+/* , or sub-device drivers */
+state->sd.ctrl_handler = &state->ctrl_handler;
+
+v4l2_ctrl_handler_free(&state->ctrl_handler);
+
+Add controls
+	- non-menu control
+		struct v4l2_ctrl *v4l2_ctrl_new_std();
+	- menu and integer menu control
+		struct v4l2_ctrl *v4l2_ctrl_new_std_menu();
+	- menu controls with a driver specific menu
+		struct v4l2_ctrl *v4l2_ctrl_new_std_menu_items();
+	- integer menu controls with a driver specific menu
+		struct v4l2_ctrl *v4l2_ctrl_new_int_menu();
+
+Force initial control setup
+	- v4l2_ctrl_handler_setup(&state->ctrl_handler);
+
+Implement v4l2_ctrl_ops
+
+static const struct v4l2_ctrl_ops chipname_ctrl_ops = {
+	.s_ctrl = chipname_s_ctrl;
+};
+
+///////////////////////////////////////////////////////////////////////////
+
+CUSTOM CONTROLS
+
+static const struct v4l2_ctrl_config ctrl_filter = {
+};
+
+v4l2_ctrl_new_cutom(&chipname->ctrl_handler, &ctrl_filter, NULL);
