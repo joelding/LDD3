@@ -1,7 +1,7 @@
 V4L2 DRIVERS
 
 Q: How to write an i2c-controlled video decoder/encoder driver?
-Q: What is a media framework? How this relate to V4L2 driver?
+Q: What is a media framework? How does this relate to V4L2 driver?
 
 ///////////////////////////////////////////////////////////////////////////
 
