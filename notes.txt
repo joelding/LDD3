@@ -16,6 +16,14 @@ References
 1. LDD3
 1. 宋宝华, Linux设备驱动开发详解:基于最新的Linux4.0内核, 机械工业出版社 2015年8月1日
 
+///////////////////////////////////////////////////////////////////////////
+
+MAKEFILE
+
+= 是最基本的賦值
+:= 會覆蓋變數之前的值
+?= 變數為空時才給值，不然則維持之前的值
++= 將值附加到變數的後面
 
 ///////////////////////////////////////////////////////////////////////////
 
@@ -76,17 +84,19 @@ references:
 1. Documentation/i2c/writing-clients
 
 ///////////////////////////////////////////////////////////////////////////
-## Miscellaneous Character Drivers
-* are not found in LDD3 book
-* have been existing since 2.0 kernel
-* support custom hacks
-* show as character devices with major number 10 with the following commands
-```
+
+MISCELLANEOUS CHARACTER DRIVERS
+
+	* are not found in LDD3 book
+	* have been existing since 2.0 kernel
+	* support custom hacks
+	* show as character devices with major number 10 with the following commands
+
 # ls -l /dev
 # cat /proc/devices
-```
+
 * APIs (kernel 3.18)
-```
+
 #include <linux/miscdevice.h>
 struct file_operations foo_fops = {
 
@@ -102,6 +112,7 @@ static init __init foo_init(void)
 	int ret;
 	ret = misc_register(&foo_dev);
 	/* TODO: handle error */
+
 	return ret;
 }
 module_init(foo_init);
@@ -111,12 +122,22 @@ static void __exit foo_exit(void)
 	misc_deregister(&foo_dev);
 }
 module_exit(foo_exit);
-```
 
-references:
-  * Docs » The Linux driver implementer’s API guide » Miscellaneous Devices [link](https://www.kernel.org/doc/html/v4.12/driver-api/misc_devices.html)
-  * Miscellaneous Character Drivers, Jun 30, 1998  By Alessandro Rubini [link](http://www.linuxjournal.com/article/2920)
- 
+
+REFERENCES:
+
+	1. Docs » The Linux driver implementer’s API guide » Miscellaneous Devices 
+	[link] https://www.kernel.org/doc/html/v4.12/driver-api/misc_devices.html
+	
+	2. Miscellaneous Character Drivers, Jun 30, 1998  By Alessandro Rubini 
+	[link] http://www.linuxjournal.com/article/2920
+	
+	3. 
+	[link] http://nano-chicken.blogspot.tw/2009/12/linux-modules6-miscdev.html
+	
+	4. misc_register和register_chrdev的区别
+	[link] http://blog.csdn.net/armeasy/article/details/7197936
+	
 ///////////////////////////////////////////////////////////////////////////
 ## Netlink / Netlink sock family
 * is a Linux interface used for inter-process communication between both the kernel and userspace processes, and between different userspace processes

@@ -22,6 +22,24 @@ references:
 2. An Introduction to the Video4Linux Framework by Verkuil [link](https://archive.fosdem.org/2014/schedule/event/v4l_intro/attachments/slides/448/export/events/attachments/v4l_intro/slides/448/v4l2_frameworks.pdf)
 3. Linux Media Subsystem Documentation [link](https://linuxtv.org/downloads/v4l-dvb-apis/)
 
+V4L2框架之视频监控【参考】韦东山 教学视频
+http://www.cnblogs.com/Hello-words/p/6178640.html
+
+vivid: Virtual Video Test Driver
+Documentation/video4linux/vivid.txt
+
+The VIVI driver; a great starting point for V4L2 driver writers 
+https://lwn.net/Articles/203971/
+
+V4L2 driver Step by Step
+http://cuteparrot.pixnet.net/blog/category/3020617
+
+The Video4Linux2 API: an introduction
+https://lwn.net/Articles/203924/
+
+TI811X PSP Adding External Decoders to V4L2 Capture Driver
+http://processors.wiki.ti.com/index.php/TI811X_PSP_Adding_External_Decoders_to_V4L2_Capture_Driver
+
 ///////////////////////////////////////////////////////////////////////////
 
 Introduction to V4L2 drivers
@@ -50,8 +68,8 @@ V4L2 drivers must
 	* Filehandle-specific structs and per-filehandle data
 	* handle video buffer 
 
-	device instances: struct v4l2_device, better if named v4l2_root
-    	|
+	device instances: struct v4l2_device, better named as v4l2_root
+		|
 		+-sub-device instances: struct v4l2_subdev
 		|
 		\-V4L2 device nodes: struct video_device 
@@ -389,3 +407,20 @@ static const struct v4l2_ctrl_config ctrl_filter = {
 };
 
 v4l2_ctrl_new_cutom(&chipname->ctrl_handler, &ctrl_filter, NULL);
+
+
+///////////////////////////////////////////////////////////////////////////
+
+用vivi和xawtv學習V4L2驅動和應用編程 (初體驗)
+最後更新：2013/02/22
+
+在Ubuntu 10.04上，很容易看一下這個實驗的結果：
+$ # 安裝xawtv
+$ sudo apt-get install xawtv
+$ # 安裝vivi驅動
+$ cd /lib/modules/2.6.32-42-generic/kernel/drivers/media/video
+$ sudo modprobe -a vivi
+$ # 執行xawtv
+$ xawtv
+
+結果：可以看到xawtv開了一個視窗，有color bar由右到左像跑馬燈一樣。
